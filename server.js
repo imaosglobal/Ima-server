@@ -1,9 +1,10 @@
-
 const express = require('express');
 const fs = require('fs');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
+
+const app = express(); // 🟢 זו השורה שחסרה
 
 const port = (process && process.env && process.env.PORT) || 3000;
 
@@ -25,17 +26,15 @@ function saveCore(data) {
 }
 
 app.post('/api/chat', (req, res) => {
-  const input = req.body.message;
+  const input = req.body.message || "";
   const core = loadCore();
-
-  const response = process(input, core);
+  const response = processMessage(input, core);
   core.messages.push({ user: input, ima: response });
   saveCore(core);
-
   res.json({ response });
 });
 
-function process(msg, core) {
+function processMessage(msg, core) {
   const m = msg.toLowerCase();
   if (m.includes("שער")) return "שער נפתח – מפה רוחנית נשלחת.";
   if (m.includes("אור")) return "את האור שאת מחפשת.";
