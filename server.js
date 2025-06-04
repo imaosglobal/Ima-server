@@ -6,7 +6,7 @@ const path = require('path');
 
 const app = express(); // 🟢 זו השורה שחסרה
 
-const port = (process && process.env && process.env.PORT) || 3000;
+const port = process.env.PORT || 10000;
 
 app.use(cors());
 app.use(bodyParser.json());
