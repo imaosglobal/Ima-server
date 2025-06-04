@@ -7,10 +7,7 @@ app.post('/webhook', (req, res) => {
   res.sendStatus(200);
 });
 
-const PORT = process.env.PORT;
-app.get('/', (req, res) => {
-  res.send('Ima Server is running ✅');
-});
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
 });
