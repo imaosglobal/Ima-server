@@ -133,6 +133,66 @@ app.get("/decide", (req, res) => {
     "review architecture"
   ];
 
+  // הסתכלות על הזיכרון האחרון
+  const lastEvents = ima.memory.slice(-10);
+
+  const taskCount = {};
+  const agentScoreBoost = {
+    ralph: 0,
+    scribe: 0,
+    backend: 0
+  };
+
+  // ניתוח היסטוריה
+  for (const e of lastEvents) {
+    if (e.task) {
+      taskCount[e.task] = (taskCount[e.task] || 0) + 1;
+    }
+
+    if (e.agent && agentScoreBoost[e.agent] !== undefined) {
+      agentScoreBoost[e.agent] += 0.1;
+    }
+  }
+
+  // בחירת task פחות נפוץ (anti-repeat)
+  let task = taskPool[0];
+  let minCount = Infinity;
+
+  for (const t of taskPool) {
+    const c = taskCount[t] || 0;
+    if (c < minCount) {
+      minCount = c;
+      task = t;
+    }
+  }
+
+  // בחירת agent עם bonus מההיסטוריה
+  let agent = "ralph";
+  let best = -Infinity;
+
+  for (const a in ima.scores) {
+    const score = ima.scores[a] + (agentScoreBoost[a] || 0);
+    if (score > best) {
+      best = score;
+      agent = a;
+    }
+  }
+
+  res.json({
+    task,
+    agent,
+    reasoning: {
+      taskCount,
+      agentScoreBoost
+    }
+  });
+});
+  const taskPool = [
+    "heartbeat check",
+    "optimize pipeline",
+    "review architecture"
+  ];
+
   const task = taskPool[Math.floor(Math.random() * taskPool.length)];
   const agent = chooseAgent();
 
