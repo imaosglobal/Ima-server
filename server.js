@@ -88,3 +88,19 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("Server running on port", PORT);
 });
+app.get("/decide", (req, res) => {
+  const taskPool = [
+    "heartbeat check",
+    "optimize pipeline",
+    "review architecture"
+  ];
+
+  const task = taskPool[Math.floor(Math.random() * taskPool.length)];
+  const agent = chooseAgent();
+
+  res.json({
+    task,
+    agent,
+    reason: "selected by current scores"
+  });
+});
