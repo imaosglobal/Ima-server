@@ -4,7 +4,6 @@ const app = express();
 app.use(express.json());
 
 let memory = [];
-
 let scores = {
   ralph: 0,
   scribe: 0,
@@ -12,10 +11,12 @@ let scores = {
 };
 
 app.get("/state", (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+
   res.json({
     status: "ok",
-    memory: memory || [],
-    scores: scores || {}
+    memory: Array.isArray(memory) ? memory : [],
+    scores: scores || { ralph: 0, scribe: 0, backend: 0 }
   });
 });
 
