@@ -3,44 +3,42 @@ const app = express();
 
 app.use(express.json());
 
-// memory in RAM (נשמר כל עוד השרת חי)
 let memory = [];
 
-/**
- * STATE - מחזיר מצב מערכת
- */
+let scores = {
+  ralph: 0,
+  scribe: 0,
+  backend: 0
+};
+
 app.get("/state", (req, res) => {
   res.json({
     status: "ok",
-    memory
+    memory,
+    scores
   });
 });
 
-/**
- * EVENT - קבלת אירועים מ-Termux / cycle
- */
 app.post("/event", (req, res) => {
-  console.log("EVENT:", req.body);
+  const event = {
+    ...req.body,
+    timestamp: new Date().toISOString()
+  };
 
-  memory.push({
-    timestamp: new Date().toISOString(),
-    data: req.body
-  });
+  console.log("EVENT:", event);
+
+  memory.push(event);
+
+  // למידה פשוטה: מוסיפים נקודה לאייג'נט
+  if (event.agent && scores[event.agent] !== undefined) {
+    scores[event.agent] += 1;
+  }
 
   res.json({ ok: true });
 });
 
-/**
- * WEBHOOK - GitHub / external triggers (אופציונלי)
- */
-app.post("/webhook", (req, res) => {
-  console.log("WEBHOOK:", req.body);
-  res.sendStatus(200);
-});
-
-// PORT for Render
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, "0.0.0.0", () => {
+app.listen(PORT, () => {
   console.log("Server running on port", PORT);
 });
