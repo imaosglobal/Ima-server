@@ -5,7 +5,24 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const ima = {
+const IMA_GLOBAL = {
+  version: "1.0",
+  mode: "live",
+  ui: {
+    theme: "dark",
+    style: "modern",
+    chat: []
+  },
+  accessibility: {
+    voice: true,
+    screenReader: true
+  },
+  agents: {
+    ralph: 0,
+    scribe: 0,
+    backend: 0
+  }
+};
   memory: [],
   scores: { ralph: 0, scribe: 0, backend: 0 }
 };
@@ -25,14 +42,11 @@ function chooseAgent() {
 }
 
 app.get("/state", (req, res) => {
-  res.json({
-    status: "ok",
-    memory: ima.memory.slice(-20),
-    scores: ima.scores,
-    agent: chooseAgent()
-  });
+res.json({
+  status: "ok",
+  ima: IMA_GLOBAL,
+  agent: chooseAgent()
 });
-
 app.post("/event", (req, res) => {
   const event = req.body || {};
 
