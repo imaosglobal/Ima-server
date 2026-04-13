@@ -5,28 +5,21 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const IMA_GLOBAL = {
-  version: "1.0",
-  mode: "live",
-  ui: {
-    theme: "dark",
-    style: "modern",
-    chat: []
-  },
-  accessibility: {
-    voice: true,
-    screenReader: true
-  },
-  agents: {
+// =====================
+// GLOBAL STATE (IMA)
+// =====================
+const ima = {
+  memory: [],
+  scores: {
     ralph: 0,
     scribe: 0,
     backend: 0
   }
 };
-  memory: [],
-  scores: { ralph: 0, scribe: 0, backend: 0 }
-};
 
+// =====================
+// CORE LOGIC
+// =====================
 function chooseAgent() {
   let best = "ralph";
   let max = -Infinity;
@@ -41,12 +34,21 @@ function chooseAgent() {
   return best;
 }
 
+// =====================
+// STATE
+// =====================
 app.get("/state", (req, res) => {
-res.json({
-  status: "ok",
-  ima: IMA_GLOBAL,
-  agent: chooseAgent()
+  res.json({
+    status: "ok",
+    memory: ima.memory.slice(-20),
+    scores: ima.scores,
+    agent: chooseAgent()
+  });
 });
+
+// =====================
+// EVENT INGEST
+// =====================
 app.post("/event", (req, res) => {
   const event = req.body || {};
 
@@ -68,6 +70,9 @@ app.post("/event", (req, res) => {
   });
 });
 
+// =====================
+// DECISION ENGINE
+// =====================
 app.get("/decide", (req, res) => {
   const tasks = [
     "heartbeat check",
@@ -85,8 +90,11 @@ app.get("/decide", (req, res) => {
   });
 });
 
+// =====================
+// START SERVER
+// =====================
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log("IMA engine running on port", PORT);
+  console.log("IMA server running on port", PORT);
 });
