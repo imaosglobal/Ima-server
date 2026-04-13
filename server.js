@@ -4,34 +4,34 @@ const app = express();
 app.use(express.json());
 
 // =====================
-// STATE
+// SYSTEM STATE (single object)
 // =====================
 
-let memory = [];
-
-let scores = {
-  ralph: 0,
-  scribe: 0,
-  backend: 0
+let ima = {
+  memory: [],
+  scores: {
+    ralph: 0,
+    scribe: 0,
+    backend: 0
+  }
 };
 
 // =====================
-// CORE LOGIC
+// HELPERS
 // =====================
 
-// בוחר agent הכי חזק לפי score
 function chooseAgent() {
-  let bestAgent = "ralph";
+  let best = "ralph";
   let bestScore = -Infinity;
 
-  for (const agent in scores) {
-    if (scores[agent] > bestScore) {
-      bestScore = scores[agent];
-      bestAgent = agent;
+  for (const agent in ima.scores) {
+    if (ima.scores[agent] > bestScore) {
+      bestScore = ima.scores[agent];
+      best = agent;
     }
   }
 
-  return bestAgent;
+  return best;
 }
 
 // =====================
@@ -42,42 +42,40 @@ function chooseAgent() {
 app.get("/state", (req, res) => {
   res.json({
     status: "ok",
-    memory,
-    scores
+    agent: chooseAgent(),
+    ima
   });
 });
 
-// בחירת agent נוכחי
-app.get("/agent", (req, res) => {
-  res.json({
-    chosen: chooseAgent(),
-    scores
-  });
-});
-
-// קבלת events מה-cycle / termux
+// קבלת אירוע
 app.post("/event", (req, res) => {
   const event = req.body || {};
 
-  console.log("EVENT:", event);
-
-  const enrichedEvent = {
+  const enriched = {
     ...event,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    chosenAgent: chooseAgent()
   };
 
-  memory.push(enrichedEvent);
+  ima.memory.push(enriched);
 
-  // למידה: חיזוק agent
   const agent = event.agent;
 
-  if (agent && scores[agent] !== undefined) {
-    scores[agent] += 1;
+  if (agent && ima.scores[agent] !== undefined) {
+    ima.scores[agent] += 1;
   }
 
   res.json({
     ok: true,
-    chosenAgent: chooseAgent()
+    chosen: chooseAgent()
+  });
+});
+
+// בדיקת agent
+app.get("/agent", (req, res) => {
+  res.json({
+    chosen: chooseAgent(),
+    scores: ima.scores
   });
 });
 
