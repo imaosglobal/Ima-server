@@ -11,6 +11,21 @@ let scores = {
   backend: 0
 };
 
+// פונקציית למידה אמיתית
+function updateScores(event) {
+  if (!event || !event.agent) return;
+
+  const agent = event.agent;
+
+  if (scores[agent] !== undefined) {
+    scores[agent] += 1;
+  }
+}
+  ralph: 0,
+  scribe: 0,
+  backend: 0
+};
+
 app.get("/state", (req, res) => {
   res.json({
     status: "ok",
@@ -28,7 +43,7 @@ app.post("/event", (req, res) => {
   console.log("EVENT:", event);
 
   memory.push(event);
-
+updateScores(event);
   // למידה פשוטה: מוסיפים נקודה לאייג'נט
   if (event.agent && scores[event.agent] !== undefined) {
     scores[event.agent] += 1;
