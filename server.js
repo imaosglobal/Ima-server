@@ -3,58 +3,87 @@ const app = express();
 
 app.use(express.json());
 
-// מצב מבודד לחלוטין (אין undefined בכלל)
-function getFreshScores() {
-  return {
-    ralph: 0,
-    scribe: 0,
-    backend: 0
-  };
-}
+// =====================
+// STATE
+// =====================
 
 let memory = [];
-let scores = getFreshScores();
 
-// STATE
-app.get("/state", (req, res) => {
-  try {
-    res.json({
-      status: "ok",
-      memory: memory || [],
-      scores: scores || getFreshScores()
-    });
-  } catch (e) {
-    res.status(500).json({
-      status: "error",
-      message: "state crash recovered"
-    });
-  }
-});
+let scores = {
+  ralph: 0,
+  scribe: 0,
+  backend: 0
+};
 
-// EVENT
-app.post("/event", (req, res) => {
-  try {
-    const event = req.body || {};
+// =====================
+// CORE LOGIC
+// =====================
 
-    console.log("EVENT:", event);
+// בוחר agent הכי חזק לפי score
+function chooseAgent() {
+  let bestAgent = "ralph";
+  let bestScore = -Infinity;
 
-    memory.push({
-      ...event,
-      timestamp: new Date().toISOString()
-    });
-
-    const agent = event.agent;
-
-    if (agent && scores[agent] !== undefined) {
-      scores[agent] += 1;
+  for (const agent in scores) {
+    if (scores[agent] > bestScore) {
+      bestScore = scores[agent];
+      bestAgent = agent;
     }
-
-    res.json({ ok: true });
-  } catch (e) {
-    console.log("EVENT ERROR:", e);
-    res.status(500).json({ ok: false });
   }
+
+  return bestAgent;
+}
+
+// =====================
+// ROUTES
+// =====================
+
+// מצב מערכת
+app.get("/state", (req, res) => {
+  res.json({
+    status: "ok",
+    memory,
+    scores
+  });
 });
+
+// בחירת agent נוכחי
+app.get("/agent", (req, res) => {
+  res.json({
+    chosen: chooseAgent(),
+    scores
+  });
+});
+
+// קבלת events מה-cycle / termux
+app.post("/event", (req, res) => {
+  const event = req.body || {};
+
+  console.log("EVENT:", event);
+
+  const enrichedEvent = {
+    ...event,
+    timestamp: new Date().toISOString()
+  };
+
+  memory.push(enrichedEvent);
+
+  // למידה: חיזוק agent
+  const agent = event.agent;
+
+  if (agent && scores[agent] !== undefined) {
+    scores[agent] += 1;
+  }
+
+  res.json({
+    ok: true,
+    chosenAgent: chooseAgent()
+  });
+});
+
+// =====================
+// START
+// =====================
 
 const PORT = process.env.PORT || 3000;
 
