@@ -51,6 +51,44 @@ app.get("/state", (req, res) => {
 app.post("/event", (req, res) => {
   const event = req.body || {};
 
+  const agent = event.agent;
+  const task = event.task;
+
+  // שמירה בזיכרון
+  const record = {
+    ...event,
+    timestamp: new Date().toISOString()
+  };
+
+  ima.memory.push(record);
+
+  // =====================
+  // LEARNING (REWARD)
+  // =====================
+
+  if (agent && ima.scores[agent] !== undefined) {
+    let reward = 0;
+
+    // חוקים פשוטים ללמידה
+    if (event.status === "success") reward += 1;
+    if (event.status === "fail") reward -= 1;
+
+    // משקל לפי סוג task
+    if (task === "heartbeat check") reward += 0.2;
+    if (task === "optimize pipeline") reward += 0.5;
+    if (task === "review architecture") reward += 0.7;
+
+    ima.scores[agent] += reward;
+  }
+
+  res.json({
+    ok: true,
+    memorySize: ima.memory.length,
+    scores: ima.scores
+  });
+});
+  const event = req.body || {};
+
   const enriched = {
     ...event,
     timestamp: new Date().toISOString(),
