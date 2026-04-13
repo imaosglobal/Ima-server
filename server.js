@@ -3,40 +3,57 @@ const app = express();
 
 app.use(express.json());
 
+// מצב מבודד לחלוטין (אין undefined בכלל)
+function getFreshScores() {
+  return {
+    ralph: 0,
+    scribe: 0,
+    backend: 0
+  };
+}
+
 let memory = [];
-let scores = {
-  ralph: 0,
-  scribe: 0,
-  backend: 0
-};
+let scores = getFreshScores();
 
+// STATE
 app.get("/state", (req, res) => {
-  res.setHeader('Content-Type', 'application/json');
-
-  res.json({
-    status: "ok",
-    memory: Array.isArray(memory) ? memory : [],
-    scores: scores || { ralph: 0, scribe: 0, backend: 0 }
-  });
+  try {
+    res.json({
+      status: "ok",
+      memory: memory || [],
+      scores: scores || getFreshScores()
+    });
+  } catch (e) {
+    res.status(500).json({
+      status: "error",
+      message: "state crash recovered"
+    });
+  }
 });
 
+// EVENT
 app.post("/event", (req, res) => {
-  const event = req.body || {};
+  try {
+    const event = req.body || {};
 
-  console.log("EVENT:", event);
+    console.log("EVENT:", event);
 
-  memory.push({
-    ...event,
-    timestamp: new Date().toISOString()
-  });
+    memory.push({
+      ...event,
+      timestamp: new Date().toISOString()
+    });
 
-  const agent = event.agent;
+    const agent = event.agent;
 
-  if (agent && scores[agent] !== undefined) {
-    scores[agent] += 1;
+    if (agent && scores[agent] !== undefined) {
+      scores[agent] += 1;
+    }
+
+    res.json({ ok: true });
+  } catch (e) {
+    console.log("EVENT ERROR:", e);
+    res.status(500).json({ ok: false });
   }
-
-  res.json({ ok: true });
 });
 
 const PORT = process.env.PORT || 3000;
