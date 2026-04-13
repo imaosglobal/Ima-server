@@ -38,14 +38,21 @@ function chooseAgent() {
 // STATE
 // =====================
 app.get("/state", (req, res) => {
-  const safeResponse = {
+  const snapshot = {
     status: "ok",
     memory: ima.memory.slice(-20),
-    scores: ima.scores,
+    scores: {
+      ralph: ima.scores.ralph,
+      scribe: ima.scores.scribe,
+      backend: ima.scores.backend
+    },
     agent: chooseAgent()
   };
 
-  res.json(safeResponse);
+  const json = JSON.stringify(snapshot);
+
+  res.setHeader("Content-Type", "application/json");
+  res.end(json);
 });
 // =====================
 // EVENT INGEST
