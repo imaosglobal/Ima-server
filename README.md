@@ -37,3 +37,9 @@ fetch("https://YOUR-SERVER.onrender.com/api/chat", {
 ```
 
 ברוך הבא ל־ima.
+
+## Quick start
+
+1. Clone this repository.
+2. Install prerequisites from project files.
+3. Build and run the project's standard tests.
