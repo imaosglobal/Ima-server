@@ -1,0 +1,40 @@
+name: IMA MCP Production Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "server.js"
+      - "mcp.js"
+      - "package.json"
+      - "tests/mcp-smoke.mjs"
+      - ".github/workflows/ima-mcp-production-smoke.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  production-mcp-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Verify production MCP initialize, tools/list and tool calls
+        env:
+          IMA_MCP_URL: https://ima-server-1ptk.onrender.com/mcp
+        run: npm run test:mcp
+
+      - name: Record production endpoint metadata
+        run: |
+          curl --fail --silent --show-error https://ima-server-1ptk.onrender.com/health
+          printf '\n'
