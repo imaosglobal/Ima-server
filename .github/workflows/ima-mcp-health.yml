@@ -19,8 +19,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: yarn
-      - run: yarn install --frozen-lockfile
+      - run: npm install
       - name: Start IMA server
         run: |
           node server.js > /tmp/ima-server.log 2>&1 &
@@ -33,7 +32,7 @@ jobs:
       - name: MCP protocol smoke test
         env:
           IMA_MCP_URL: http://127.0.0.1:3000/mcp
-        run: yarn test:mcp
+        run: npm run test:mcp
       - name: Server log on failure
         if: failure()
         run: cat /tmp/ima-server.log
